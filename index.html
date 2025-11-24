@@ -162,7 +162,7 @@ function generateBoard(){
 let activeType = null; 
 let completedLines = []; 
 
-function toggleMark(cell){
+ffunction toggleMark(cell){
   const username = document.getElementById('usernameInput').value.trim();
   if(!username){ alert('Enter username!'); return; }
   if(boardDisabled) return;
@@ -170,57 +170,71 @@ function toggleMark(cell){
   cell.classList.toggle("marked");
 
   const index = parseInt(cell.dataset.index);
-  const rowIndex = Math.floor(index / 3);
-  const colIndex = index % 3;
+  const row = Math.floor(index / 3);
+  const col = index % 3;
 
-  // Detect FIRST move type
+  // Detect FIRST move only
   if(activeType === null){
-    const rowFilled = [0,1,2].map(i => boardCells[rowIndex*3 + i].classList.contains("marked")).filter(v=>v).length;
-    const colFilled = [0,1,2].map(i => boardCells[i*3 + colIndex].classList.contains("marked")).filter(v=>v).length;
+    const rowMarks =
+      [row*3, row*3+1, row*3+2].filter(i => boardCells[i].classList.contains("marked")).length;
 
-    if(rowFilled > colFilled) activeType = "row";
-    else if(colFilled > rowFilled) activeType = "column";
-    else activeType = "row"; // default fallback
+    const colMarks =
+      [col, col+3, col+6].filter(i => boardCells[i].classList.contains("marked")).length;
+
+    // Whichever has more marks determines the style
+    if(colMarks > rowMarks) activeType = "column";
+    else activeType = "row"; // default
   }
 
   checkLines(username);
 }
 
+
 function checkLines(username){
-  const indices = boardCells.map(cell => cell.classList.contains('marked') ? 1 : 0);
+  const marked = boardCells.map(c => c.classList.contains("marked"));
 
   let lines = [];
-  if(activeType === 'row'){
+
+  if(activeType === "row"){
     lines = [
-      { combo: [0,1,2], name: "First Row" },
-      { combo: [3,4,5], name: "Second Row" },
-      { combo: [6,7,8], name: "Third Row" }
+      { id: "r0", combo: [0,1,2] },
+      { id: "r1", combo: [3,4,5] },
+      { id: "r2", combo: [6,7,8] }
     ];
-  } else {
+  }
+
+  if(activeType === "column"){
     lines = [
-      { combo: [0,3,6], name: "First Column" },
-      { combo: [1,4,7], name: "Second Column" },
-      { combo: [2,5,8], name: "Third Column" }
+      { id: "c0", combo: [0,3,6] },
+      { id: "c1", combo: [1,4,7] },
+      { id: "c2", combo: [2,5,8] }
     ];
   }
 
   lines.forEach(line => {
-    if(line.combo.every(i => indices[i] === 1) && !completedLines.includes(line.name)){
-      completedLines.push(line.name);
 
-      line.combo.forEach(i => boardCells[i].classList.add('winner'));
+    const isComplete = line.combo.every(i => marked[i]);
+    const alreadyDone = completedLines.includes(line.id);
+
+    if(isComplete && !alreadyDone){
+
+      completedLines.push(line.id);
+
+      // Highlight winners
+      line.combo.forEach(i => boardCells[i].classList.add("winner"));
 
       if(completedLines.length < 3){
-        alert(`${username} completed ${line.name}!`);
+        alert(`${username} completed ${activeType} ${completedLines.length}!`);
       } else {
-        alert(`${username} completed ${line.name}, Bingo! 🎉`);
+        alert(`${username} completed all 3 ${activeType}s — BINGO! 🎉`);
         boardDisabled = true;
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         saveResult(username);
       }
     }
   });
 }
+
 
 function resetMarks(){
   boardCells.forEach(c=>c.classList.remove('marked','winner'));
