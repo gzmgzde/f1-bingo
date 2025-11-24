@@ -159,13 +159,7 @@ function generateBoard(){
   });
 }
 
-function toggleMark(cell){
-  const username = document.getElementById('usernameInput').value.trim();
-  if(!username){ alert('Enter username!'); return; }
-  cell.classList.toggle("marked");
-  checkWinner(username);
-}
-  let completedLines = []; // track completed rows or columns
+let completedLines = []; // track completed rows or columns
 let boardDisabled = false;
 
 function toggleMark(cell){
