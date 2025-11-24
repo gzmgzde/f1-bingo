@@ -28,6 +28,50 @@
 
   button { padding: 10px 20px; margin-top: 20px; background: #ff4d4d; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
   #usernameInput { padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #444; margin-bottom: 10px; }
+
+  #leaderboardContainer {
+  width: 280px;
+  background: #1a1a1a;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 20px;
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+}
+
+#leaderboardTitle {
+  text-align: center;
+  color: #ff4d4d;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#leaderboard li {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: #222;
+  border-radius: 6px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideIn 0.3s ease;
+}
+
+#leaderboard li:hover {
+  background: #333;
+  transform: scale(1.03);
+  transition: 0.2s;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.trophy-1 { color: gold; }
+.trophy-2 { color: silver; }
+.trophy-3 { color: #cd7f32; } /* bronze */
+
 </style>
 </head>
 <body>
@@ -37,8 +81,10 @@
 
 <button onclick="resetMarks()">Reset Marks</button>
 <div id="board"></div>
-<h2>Leaderboard</h2>
-<ul id="leaderboard"></ul>
+<div id="leaderboardContainer">
+  <h2 id="leaderboardTitle">Leaderboard</h2>
+  <ul id="leaderboard"></ul>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -57,13 +103,25 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const leaderboard = document.getElementById('leaderboard');
 
-db.collection('winners').orderBy('timestamp').onSnapshot(snapshot => {
-  leaderboard.innerHTML = '';
-  snapshot.forEach(doc => {
-    const li = document.createElement('li');
-    li.textContent = doc.id;
-    leaderboard.appendChild(li);
-  });
+db.collection('winners')
+  .orderBy('timestamp')
+  .onSnapshot(snapshot => {
+
+    leaderboard.innerHTML = '';
+    let rank = 1;
+
+    snapshot.forEach(doc => {
+      const li = document.createElement('li');
+      
+      let trophy = "";
+      if (rank === 1) trophy = "🏆";
+      if (rank === 2) trophy = "🥈";
+      if (rank === 3) trophy = "🥉";
+
+      li.innerHTML = `<span>${trophy}</span> ${doc.id}`;
+      leaderboard.appendChild(li);
+      rank++;
+    });
 });
 
 const items = [
