@@ -115,9 +115,19 @@
 
     function resetMarks(){ boardCells.forEach(c=>c.classList.remove('marked')); }
 
-    function saveResult(username){
-      db.collection('winners').add({ username: username, timestamp: Date.now() });
+   function saveResult(username){
+  const winnerRef = db.collection('winners').doc(username); // use username as doc ID
+  winnerRef.get().then(docSnapshot => {
+    if(!docSnapshot.exists){
+      winnerRef.set({
+        timestamp: Date.now()
+      });
+    } else {
+      alert(username + " already has a win recorded!");
     }
+  });
+}
+
 
     generateBoard();
   </script>
