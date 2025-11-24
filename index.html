@@ -162,7 +162,7 @@ function generateBoard(){
 let activeType = null; 
 let completedLines = []; 
 
-ffunction toggleMark(cell){
+function toggleMark(cell){
   const username = document.getElementById('usernameInput').value.trim();
   if(!username){ alert('Enter username!'); return; }
   if(boardDisabled) return;
