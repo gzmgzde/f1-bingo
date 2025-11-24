@@ -166,33 +166,34 @@ function toggleMark(cell){
   checkWinner(username);
 }
 
-function checkWinner(username){
-  const indices = boardCells.map((cell, i) => cell.classList.contains('marked') ? 1 : 0);
+let completedLines = []; // track completed lines
 
-  // Define winning combinations with line names
+function checkWinner(username){
+  const indices = boardCells.map(cell => cell.classList.contains('marked') ? 1 : 0);
+
+  // All rows and columns
   const winningCombos = [
-    { combo: [0,1,2], name: "1st Line" }, // top row
-    { combo: [3,4,5], name: "2nd Line" }, // middle row
-    { combo: [6,7,8], name: "3rd Line" }, // bottom row
-    { combo: [0,3,6], name: "1st Column" }, // left column
-    { combo: [1,4,7], name: "2nd Column" }, // middle column
-    { combo: [2,5,8], name: "3rd Column" }, // right column
+    { combo: [0,1,2], name: "1st Row" },
+    { combo: [3,4,5], name: "2nd Row" },
+    { combo: [6,7,8], name: "3rd Row" },
+    { combo: [0,3,6], name: "1st Column" },
+    { combo: [1,4,7], name: "2nd Column" },
+    { combo: [2,5,8], name: "3rd Column" }
   ];
 
-  let winnerFound = false;
-
   winningCombos.forEach(item => {
-    if(item.combo.every(i => indices[i] === 1) && !winnerFound){
-      winnerFound = true;
-      // Highlight winning line
+    if(item.combo.every(i => indices[i] === 1) && !completedLines.includes(item.name)){
+      completedLines.push(item.name);
       item.combo.forEach(i => boardCells[i].classList.add('winner'));
 
-      // Show winning message
-      alert(`${username} wins! 🎉 ${item.name}, Bingo!`);
-
-      boardDisabled = true;
-      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      saveResult(username);
+      if(completedLines.length < winningCombos.length){
+        alert(`${username} completed ${item.name}!`);
+      } else {
+        alert(`${username} completed ${item.name}, Bingo! 🎉`);
+        boardDisabled = true;
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        saveResult(username);
+      }
     }
   });
 }
