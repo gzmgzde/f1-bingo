@@ -167,15 +167,36 @@ function toggleMark(cell){
 }
 
 function checkWinner(username){
-  const allMarked = boardCells.every(cell => cell.classList.contains('marked'));
-  if(allMarked){
-    alert(username + " wins! 🎉");
-    boardCells.forEach(c => c.classList.add('winner')); // highlight all
-    boardDisabled = true;
-    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-    saveResult(username);
+  const indices = boardCells.map((cell, i) => cell.classList.contains('marked') ? 1 : 0);
+
+  // Define winning combinations with line names
+  const winningCombos = [
+    { combo: [0,1,2], name: "1st Line" }, // top row
+    { combo: [3,4,5], name: "2nd Line" }, // middle row
+    { combo: [6,7,8], name: "3rd Line" }, // bottom row
+    { combo: [0,3,6], name: "1st Column" }, // left column
+    { combo: [1,4,7], name: "2nd Column" }, // middle column
+    { combo: [2,5,8], name: "3rd Column" }, // right column
+  ];
+
+  let winnerFound = false;
+
+  winningCombos.forEach(item => {
+    if(item.combo.every(i => indices[i] === 1) && !winnerFound){
+      winnerFound = true;
+      // Highlight winning line
+      item.combo.forEach(i => boardCells[i].classList.add('winner'));
+
+      // Show winning message
+      alert(`${username} wins! 🎉 ${item.name}, Bingo!`);
+
+      boardDisabled = true;
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      saveResult(username);
+    }
+  });
 }
-}
+
 
 function resetMarks(){
   boardCells.forEach(c=>c.classList.remove('marked','winner'));
