@@ -175,7 +175,7 @@ function toggleMark(cell){
     const colIndex = index % 3;
 
     // Decide type based on first click: whichever has fewer completed lines so far
-    activeType = 'row'; // default to rows; you could add logic to prefer column if desired
+    activeType = 'column'; // default to rows; you could add logic to prefer column if desired
   }
 
   checkLines(username);
@@ -188,15 +188,15 @@ function checkLines(username){
   let lines = [];
   if(activeType === 'row'){
     lines = [
-      { combo: [0,1,2], name: "1st Line" },
-      { combo: [3,4,5], name: "2nd Line" },
-      { combo: [6,7,8], name: "3rd Line" }
+      { combo: [0,1,2], name: "Line" },
+      { combo: [3,4,5], name: "Line" },
+      { combo: [6,7,8], name: "Line" }
     ];
   } else if(activeType === 'column'){
     lines = [
-      { combo: [0,3,6], name: "1st Column" },
-      { combo: [1,4,7], name: "2nd Column" },
-      { combo: [2,5,8], name: "3rd Column" }
+      { combo: [0,3,6], name: "Column" },
+      { combo: [1,4,7], name: "Column" },
+      { combo: [2,5,8], name: "Column" }
     ];
   }
 
