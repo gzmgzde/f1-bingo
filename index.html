@@ -168,41 +168,66 @@ function toggleMark(cell){
 
 let completedLines = []; // track completed lines
 
-function checkWinner(username){
-  const indices = boardCells.map(cell => cell.classList.contains('marked') ? 1 : 0);
+let activeLine = null; // track the line the user is following
+let completedLine = false;
 
-  // All rows and columns
-  const winningCombos = [
-    { combo: [0,1,2], name: "1st Row" },
-    { combo: [3,4,5], name: "2nd Row" },
-    { combo: [6,7,8], name: "3rd Row" },
-    { combo: [0,3,6], name: "1st Column" },
-    { combo: [1,4,7], name: "2nd Column" },
-    { combo: [2,5,8], name: "3rd Column" }
-  ];
+function toggleMark(cell){
+  const username = document.getElementById('usernameInput').value.trim();
+  if(!username){ alert('Enter username!'); return; }
+  
+  if(boardDisabled) return;
 
-  winningCombos.forEach(item => {
-    if(item.combo.every(i => indices[i] === 1) && !completedLines.includes(item.name)){
-      completedLines.push(item.name);
-      item.combo.forEach(i => boardCells[i].classList.add('winner'));
+  cell.classList.toggle("marked");
 
-      if(completedLines.length < winningCombos.length){
-        alert(`${username} completed ${item.name}!`);
-      } else {
-        alert(`${username} completed ${item.name}, Bingo! 🎉`);
-        boardDisabled = true;
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        saveResult(username);
-      }
+  if(!activeLine){
+    // Determine line type (row or column) based on first marked cell
+    const index = parseInt(cell.dataset.index);
+    if(index % 3 === 0 || index % 3 === 1 || index % 3 === 2){
+      // prioritize row
+      const rowIndex = Math.floor(index / 3);
+      activeLine = {
+        type: 'row',
+        cells: [rowIndex*3, rowIndex*3+1, rowIndex*3+2],
+        name: `${rowIndex+1} Line`
+      };
+    } else {
+      // fallback column (this case is rarely needed)
+      const colIndex = index % 3;
+      activeLine = {
+        type: 'column',
+        cells: [colIndex, colIndex+3, colIndex+6],
+        name: `${colIndex+1} Column`
+      };
     }
-  });
+  }
+
+  checkActiveLine(username);
 }
 
+function checkActiveLine(username){
+  if(!activeLine || completedLine) return;
+
+  const marked = activeLine.cells.every(i => boardCells[i].classList.contains('marked'));
+  
+  if(marked){
+    completedLine = true;
+    // highlight the winning line
+    activeLine.cells.forEach(i => boardCells[i].classList.add('winner'));
+    
+    alert(`${username} completed ${activeLine.name}, Bingo! 🎉`);
+    boardDisabled = true;
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    saveResult(username);
+  }
+}
 
 function resetMarks(){
   boardCells.forEach(c=>c.classList.remove('marked','winner'));
   boardDisabled = false;
+  activeLine = null;
+  completedLine = false;
 }
+
 
 function saveResult(username){
   const winnerRef = db.collection('winners').doc(username);
