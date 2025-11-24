@@ -159,8 +159,8 @@ function generateBoard(){
   });
 }
 
-let activeType = 'row'; // 'row' or 'column'
-let completedLines = []; // track completed lines
+let activeType = null; 
+let completedLines = []; 
 
 function toggleMark(cell){
   const username = document.getElementById('usernameInput').value.trim();
@@ -169,10 +169,21 @@ function toggleMark(cell){
 
   cell.classList.toggle("marked");
 
-  if(!activeType){
+  // First click decides game mode: row or column
+  if(activeType === null){
     const index = parseInt(cell.dataset.index);
     const rowIndex = Math.floor(index / 3);
     const colIndex = index % 3;
+
+    // Decide based on first line you can possibly complete
+    // If first mark is on the same row (0,1,2 or 3,4,5 or 6,7,8) → row mode
+    // If on the same column (0,3,6 or 1,4,7 or 2,5,8) → column mode
+    activeType = "row"; // default preference
+
+    // If clicked in the MIDDLE column (index 1,4,7) → likely column
+    if(colIndex === 1) activeType = "column";
+    // If clicked in the FIRST or LAST column (0,3,6) or (2,5,8) → also column possible
+    if(colIndex === 0 || colIndex === 2) activeType = "column";
   }
 
   checkLines(username);
@@ -181,25 +192,25 @@ function toggleMark(cell){
 function checkLines(username){
   const indices = boardCells.map(cell => cell.classList.contains('marked') ? 1 : 0);
 
-  // Define lines based on active type
   let lines = [];
   if(activeType === 'row'){
     lines = [
-      { combo: [0,1,2], name: "Line" },
-      { combo: [3,4,5], name: "Line" },
-      { combo: [6,7,8], name: "Line" }
+      { combo: [0,1,2], name: "First Row" },
+      { combo: [3,4,5], name: "Second Row" },
+      { combo: [6,7,8], name: "Third Row" }
     ];
-  } else if(activeType === 'column'){
+  } else {
     lines = [
-      { combo: [0,3,6], name: "Column" },
-      { combo: [1,4,7], name: "Column" },
-      { combo: [2,5,8], name: "Column" }
+      { combo: [0,3,6], name: "First Column" },
+      { combo: [1,4,7], name: "Second Column" },
+      { combo: [2,5,8], name: "Third Column" }
     ];
   }
 
   lines.forEach(line => {
     if(line.combo.every(i => indices[i] === 1) && !completedLines.includes(line.name)){
       completedLines.push(line.name);
+
       line.combo.forEach(i => boardCells[i].classList.add('winner'));
 
       if(completedLines.length < 3){
@@ -214,12 +225,6 @@ function checkLines(username){
   });
 }
 
-function resetMarks(){
-  boardCells.forEach(c=>c.classList.remove('marked','winner'));
-  boardDisabled = false;
-  completedLines = [];
-  activeType = null;
-}
 
 
 
