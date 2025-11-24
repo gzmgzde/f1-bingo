@@ -1,11 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
-  <!-- Firebase App (the core Firebase SDK) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -76,12 +70,49 @@
   <p>Tap squares to mark them. 3 in a row wins!</p>
 
   <div id="board"></div>
+
   <h2>Leaderboard</h2>
-<ul id="leaderboard"></ul>
+  <ul id="leaderboard"></ul>
+
   <button onclick="resetMarks()">Reset Marks</button>
-  
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Leaderboard DOM element
+    const leaderboard = document.getElementById('leaderboard');
+
+    // Listen for winners in real-time
+    db.ref('winners').on('value', snapshot => {
+      leaderboard.innerHTML = '';
+      const winnersArray = [];
+      snapshot.forEach(child => winnersArray.push(child.val()));
+      winnersArray.sort((a, b) => a.timestamp - b.timestamp);
+      winnersArray.forEach((winner, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${index + 1}. ${winner.username}`;
+        leaderboard.appendChild(li);
+      });
+    });
+
+    // Bingo items
     const items = [
       "Safety Car", "Virtual Safety Car", "DRS train", "Track limits violation",
       "Time penalty", "Tyre complaint", "Pit stop <2.5s", "Pit stop >5s",
@@ -100,14 +131,13 @@
       return arr.sort(() => Math.random() - 0.5);
     }
 
-    // Generate the board once at page load
+    // Generate board once
     function generateBoard() {
       const board = document.getElementById("board");
       board.innerHTML = "";
       boardCells = [];
 
       const card = shuffle([...items]).slice(0, 9);
-
       card.forEach((text, index) => {
         const cell = document.createElement("div");
         cell.className = "cell";
@@ -150,51 +180,14 @@
     }
 
     function saveResult(username) {
-  const winnersRef = db.ref('winners');
-  winnersRef.push({
-    username: username,
-    timestamp: Date.now()
-  });
-}
+      db.ref('winners').push({
+        username: username,
+        timestamp: Date.now()
+      });
+    }
 
-    // Initialize board on page load
+    // Initialize board
     generateBoard();
-
-    // Replace with your Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyA0lUuOnAq8N4sn6WpPr5evS3-sYwXfyu4",
-  authDomain: "f1-bingo-7c7d4.firebaseapp.com",
-  databaseURL: "https://f1-bingo-7c7d4.firebaseio.com",
-  projectId: "f1-bingo-7c7d4",
-  storageBucket: "f1-bingo-7c7d4.appspot.com",
-  messagingSenderId: "167693372774",
-  appId: "1:167693372774:web:11afc0fd34166a437d8ca7"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-
-    const leaderboard = document.getElementById('leaderboard');
-
-db.ref('winners').on('value', snapshot => {
-  leaderboard.innerHTML = '';
-  const winnersArray = [];
-  snapshot.forEach(child => {
-    winnersArray.push(child.val());
-  });
-  // Sort by timestamp (earliest first)
-  winnersArray.sort((a, b) => a.timestamp - b.timestamp);
-  winnersArray.forEach((winner, index) => {
-    const li = document.createElement('li');
-    li.textContent = `${index + 1}. ${winner.username}`;
-    leaderboard.appendChild(li);
-  });
-});
-
-
-</script>
   </script>
 </body>
 </html>
