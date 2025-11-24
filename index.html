@@ -176,10 +176,6 @@ function checkWinner(username){
     saveResult(username);
 }
 
-function highlightWinning(combo){
-  combo.forEach(i=>boardCells[i].classList.add('winner'));
-}
-
 function resetMarks(){
   boardCells.forEach(c=>c.classList.remove('marked','winner'));
   boardDisabled = false;
