@@ -7,6 +7,9 @@
 <style>
   body { font-family: Arial; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
   h1 { color: #ff4d4d; text-align: center; margin-bottom: 10px; }
+  <input id="customItemInput" type="text" placeholder="Add your own bingo item" />
+<button onclick="addCustomItem()">Add Item</button>
+
   #board { display: grid; grid-template-columns: repeat(3, 120px); grid-template-rows: repeat(3, 120px); gap: 10px; margin-top: 20px; }
   .cell { display: flex; align-items: center; justify-content: center; padding: 10px; background: #222; border: 1px solid #444; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 14px; }
   .cell:hover { background: #333; }
@@ -67,14 +70,18 @@ db.collection('winners').orderBy('timestamp').onSnapshot(snapshot => {
 
 const items = [
   "Safety Car","Virtual Safety Car","DRS train","Track limits violation",
-  "Time penalty","Tyre complaint","Pit stop <2.5s","Pit stop >5s",
-  "Runs wide Turn 1","Team orders","Driver retires (DNF)","Max fastest lap",
-  "Lando radio complaint","Russell/Leclerc blame","Checo penalty",
-  "Lewis coaching moment","Oscar quiet radio","Tyre blistering",
+  "Time penalty","Pit stop <2.5s","Pit stop >5s",
+  "Runs wide Turn 1","Yuki screaming on the radio","Stroll DNF","Max fastest lap",
+  "Lando radio complaint","Leclerc blame","Alpine having stinker",
+  "Sand on track","Stroll commits track terrorism","Haas Double Points",
   "Undercut attempt","Switch to hards","Fans on camera",
-  "Kids with earmuffs","Partner on camera","Team banner",
-  "Yellow flag","Lock-up","Helmet cam","Slow pit exit",
-  "Pit lane traffic","Wheel-to-wheel fight"
+  "Multiple teams try a 3-stop strategy","Partner on camera","Ferrari pit stop goes wrong",
+  "Yellow flag","Lando loses a podium because of tyre wear","Helmet cam","Slow pit exit",
+  "Pit lane traffic","Wheel-to-wheel fight", "Max complains about tyre-wear", 
+  "Lawson quietly finishes P8", "Presenters talk about how well the circuit looks “under the lights”",
+  "3-grid penalty for something minor", "Ferrari engineers accidentally confuse strategies between drivers",
+  "Radio message from engineer that sounds like a threat"
+  
 ];
 
 let boardCells = [], boardDisabled = false;
@@ -126,6 +133,18 @@ function highlightWinning(combo){
 function resetMarks(){
   boardCells.forEach(c=>c.classList.remove('marked','winner'));
   boardDisabled = false;
+}
+
+  function addCustomItem() {
+  const input = document.getElementById("customItemInput");
+  const value = input.value.trim();
+
+  if (!value) return alert("Please type something!");
+
+  items.push(value);         // Add custom bingo text to pool
+  input.value = "";          // Clear box
+
+  generateBoard();
 }
 
 function saveResult(username){
