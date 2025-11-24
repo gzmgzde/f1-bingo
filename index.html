@@ -175,6 +175,7 @@ function checkWinner(username){
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     saveResult(username);
 }
+}
 
 function resetMarks(){
   boardCells.forEach(c=>c.classList.remove('marked','winner'));
