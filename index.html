@@ -1,194 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>F1 Qatar GP Bingo</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-    h1 {
-      color: #ff4d4d;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    #board {
-      display: grid;
-      grid-template-columns: repeat(3, 120px);
-      grid-template-rows: repeat(3, 120px);
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .cell {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-      background: #222;
-      border: 1px solid #444;
-      border-radius: 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 14px;
-    }
-    .cell:hover { background: #333; }
-    .marked {
-      background: #ff4d4d;
-      color: #000;
-      font-weight: bold;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 20px;
-      background: #ff4d4d;
-      color: #000;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    #usernameInput {
-      padding: 8px;
-      font-size: 14px;
-      border-radius: 4px;
-      border: 1px solid #444;
-      margin-bottom: 10px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>F1 Qatar GP Bingo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 { color: #ff4d4d; text-align: center; margin-bottom: 10px; }
+    #board { display: grid; grid-template-columns: repeat(3, 120px); grid-template-rows: repeat(3, 120px); gap: 10px; margin-top: 20px; }
+    .cell { display: flex; align-items: center; justify-content: center; padding: 10px; background: #222; border: 1px solid #444; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 14px; }
+    .cell:hover { background: #333; }
+    .marked { background: #ff4d4d; color: #000; font-weight: bold; }
+    button { padding: 10px 20px; margin-top: 20px; background: #ff4d4d; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    #usernameInput { padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #444; margin-bottom: 10px; }
+  </style>
 </head>
 <body>
-  <h1>F1 Qatar GP Bingo</h1>
-  <input id="usernameInput" type="text" placeholder="Enter your username" />
-  <p>Tap squares to mark them. 3 in a row wins!</p>
+  <h1>F1 Qatar GP Bingo</h1>
+  <input id="usernameInput" type="text" placeholder="Enter your username" />
+  <p>Tap squares to mark them. 3 in a row wins!</p>
 
-  <div id="board"></div>
-  <h2>Leaderboard</h2>
-<ul id="leaderboard"></ul>
-  <button onclick="resetMarks()">Reset Marks</button>
- 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
- 
-<script>
-    const items = [
-      "Safety Car", "Virtual Safety Car", "DRS train", "Track limits violation",
-      "Time penalty", "Tyre complaint", "Pit stop <2.5s", "Pit stop >5s",
-      "Runs wide Turn 1", "Team orders", "Driver retires (DNF)", "Max fastest lap",
-      "Lando radio complaint", "Russell/Leclerc blame", "Checo penalty",
-      "Lewis coaching moment", "Oscar quiet radio", "Tyre blistering",
-      "Undercut attempt", "Switch to hards", "Fans on camera",
-      "Kids with earmuffs", "Partner on camera", "Team banner",
-      "Yellow flag", "Lock-up", "Helmet cam", "Slow pit exit",
-      "Pit lane traffic", "Wheel-to-wheel fight"
-    ];
+  <div id="board"></div>
+  <h2>Leaderboard</h2>
+  <ul id="leaderboard"></ul>
+  <button onclick="resetMarks()">Reset Marks</button>
 
-    let boardCells = [];
-    
-    // --- Firebase Configuration and Initialization ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyA0lUuOnAq8N4sn6WpPr5evS3-sYwXfyu4",
-      authDomain: "f1-bingo-7c7d4.firebaseapp.com",
-      databaseURL: "https://f1-bingo-7c7d4.firebaseio.com",
-      projectId: "f1-bingo-7c7d4",
-      storageBucket: "f1-bingo-7c7d4.appspot.com",
-      messagingSenderId: "167693372774",
-      appId: "1:167693372774:web:11afc0fd34166a437d8ca7"
-    };
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    // ----------------------------------------------------
+  <script>
+    // ------------------ FIREBASE CONFIG ------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0lUuOnAq8N4sn6WpPr5evS3-sYwXfyu4",       
+        authDomain: "f1-bingo-7c7d4.firebaseapp.com",            
+        projectId: "f1-bingo-7c7d4",       
+        storageBucket: "f1-bingo-7c7d4.appspot.com",       
+        messagingSenderId: "167693372774",       
+        appId: "1:167693372774:web:11afc0fd34166a437d8ca7"
+    };
 
-    function shuffle(arr) {
-      return arr.sort(() => Math.random() - 0.5);
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const leaderboard = document.getElementById('leaderboard');
 
-    // Generate the board once at page load
-    function generateBoard() {
-      const board = document.getElementById("board");
-      board.innerHTML = "";
-      boardCells = [];
+    // Listen for winners live
+    db.collection('winners').orderBy('timestamp').onSnapshot(snapshot => {
+      leaderboard.innerHTML = '';
+      snapshot.forEach(doc => {
+        const li = document.createElement('li');
+        li.textContent = doc.data().username;
+        leaderboard.appendChild(li);
+      });
+    });
 
-      const card = shuffle([...items]).slice(0, 9);
+    // ------------------ BINGO BOARD ------------------
+    const items = [
+      "Safety Car","Virtual Safety Car","DRS train","Track limits violation",
+      "Time penalty","Tyre complaint","Pit stop <2.5s","Pit stop >5s",
+      "Runs wide Turn 1","Team orders","Driver retires (DNF)","Max fastest lap",
+      "Lando radio complaint","Russell/Leclerc blame","Checo penalty",
+      "Lewis coaching moment","Oscar quiet radio","Tyre blistering",
+      "Undercut attempt","Switch to hards","Fans on camera",
+      "Kids with earmuffs","Partner on camera","Team banner",
+      "Yellow flag","Lock-up","Helmet cam","Slow pit exit",
+      "Pit lane traffic","Wheel-to-wheel fight"
+    ];
 
-      card.forEach((text, index) => {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        cell.textContent = text;
-        cell.dataset.index = index;
-        cell.onclick = () => toggleMark(cell);
-        board.appendChild(cell);
-        boardCells.push(cell);
-      });
-    }
+    let boardCells = [];
 
-    function toggleMark(cell) {
-      const username = document.getElementById('usernameInput').value.trim();
-      if (!username) {
-        alert('Please enter a username!');
-        return;
-      }
-      cell.classList.toggle("marked");
-      checkWinner(username);
-    }
+    function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
 
-    function checkWinner(username) {
-      const winCombos = [
-        [0,1,2], [3,4,5], [6,7,8], // rows
-        [0,3,6], [1,4,7], [2,5,8], // columns
-        [0,4,8], [2,4,6] // diagonals
-      ];
+    function generateBoard() {
+      const board = document.getElementById("board");
+      board.innerHTML = "";
+      boardCells = [];
+      const card = shuffle([...items]).slice(0, 9);
+      card.forEach((text,index) => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.textContent = text;
+        cell.dataset.index = index;
+        cell.onclick = () => toggleMark(cell);
+        board.appendChild(cell);
+        boardCells.push(cell);
+      });
+    }
 
-      for (const combo of winCombos) {
-        if (combo.every(i => boardCells[i].classList.contains('marked'))) {
-          alert(username + ' wins! 🎉');
-          saveResult(username);
-          return;
-        }
-      }
-    }
+    function toggleMark(cell) {
+      const username = document.getElementById('usernameInput').value.trim();
+      if(!username){ alert('Enter username!'); return; }
+      cell.classList.toggle("marked");
+      checkWinner(username);
+    }
 
-    function resetMarks() {
-      boardCells.forEach(cell => cell.classList.remove('marked'));
-    }
+    function checkWinner(username) {
+      const combos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      for(const c of combos){
+        if(c.every(i=>boardCells[i].classList.contains('marked'))){
+          alert(username+' wins! 🎉');
+          saveResult(username);
+          return;
+        }
+      }
+    }
 
-    function saveResult(username) {
-      const winnersRef = db.ref('winners');
-      winnersRef.push({
-        username: username,
-        timestamp: Date.now()
-      });
-    }
+    function resetMarks(){ boardCells.forEach(c=>c.classList.remove('marked')); }
 
-    // Initialize board on page load
-    generateBoard();
+    function saveResult(username){
+      db.collection('winners').add({ username: username, timestamp: Date.now() });
+    }
 
-    // Leaderboard Listener
-    const leaderboard = document.getElementById('leaderboard');
-
-    db.ref('winners').on('value', snapshot => {
-      leaderboard.innerHTML = '';
-      const winnersArray = [];
-      snapshot.forEach(child => {
-        winnersArray.push(child.val());
-      });
-      // Sort by timestamp (earliest first)
-      winnersArray.sort((a, b) => a.timestamp - b.timestamp);
-      winnersArray.forEach((winner, index) => {
-        const li = document.createElement('li');
-        li.textContent = `${index + 1}. ${winner.username}`;
-        leaderboard.appendChild(li);
-      });
-    });
-</script>
+    generateBoard();
+  </script>
 </body>
 </html>
