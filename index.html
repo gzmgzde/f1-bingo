@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -77,7 +78,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
  
-
 <script>
     const items = [
       "Safety Car", "Virtual Safety Car", "DRS train", "Track limits violation",
@@ -92,8 +92,8 @@
     ];
 
     let boardCells = [];
-
-    // --- Firebase Initialization (Moved to the start of the main script) ---
+    
+    // --- Firebase Configuration and Initialization ---
     const firebaseConfig = {
       apiKey: "AIzaSyA0lUuOnAq8N4sn6WpPr5evS3-sYwXfyu4",
       authDomain: "f1-bingo-7c7d4.firebaseapp.com",
@@ -104,10 +104,9 @@
       appId: "1:167693372774:web:11afc0fd34166a437d8ca7"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    // ------------------------------------------------------------------------
+    // ----------------------------------------------------
 
     function shuffle(arr) {
       return arr.sort(() => Math.random() - 0.5);
@@ -163,8 +162,7 @@
     }
 
     function saveResult(username) {
-      // FIX: 'db' is now defined in the scope of this script and accessible here
-      const winnersRef = db.ref('winners'); 
+      const winnersRef = db.ref('winners');
       winnersRef.push({
         username: username,
         timestamp: Date.now()
@@ -174,7 +172,7 @@
     // Initialize board on page load
     generateBoard();
 
-    // --- Leaderboard Listener (Now runs after db is initialized) ---
+    // Leaderboard Listener
     const leaderboard = document.getElementById('leaderboard');
 
     db.ref('winners').on('value', snapshot => {
@@ -191,8 +189,6 @@
         leaderboard.appendChild(li);
       });
     });
-    // ------------------------------------------------------------------------
-
 </script>
 </body>
 </html>
