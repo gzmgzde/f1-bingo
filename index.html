@@ -5,115 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>F1 Qatar GP Bingo</title>
 <style>
-  :root{
-    --bg:#111;
-    --card:#222;
-    --accent:#ff4d4d;
-    --muted:#444;
-    --win:#00ff00;
-  }
-
-  html,body{height:100%; margin:0;}
-  body { font-family: Arial, Helvetica, sans-serif; background: var(--bg); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; }
-
-  h1 { color: var(--accent); text-align: center; margin: 10px 0; }
-  p { margin: 8px 0 16px 0; color:#ddd; }
-
-  /* Controls */
-  .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
-  input[type="text"]{ padding:8px; border-radius:6px; border:1px solid var(--muted); background:#111; color:#fff; min-width:160px; }
-  button{ padding:10px 16px; border-radius:6px; border:none; cursor:pointer; font-weight:bold; background:var(--accent); color:#000; }
-
-  /* Board */
-  #boardWrapper{ width: min(420px, 92vw); } /* controls overall size/responsiveness */
-  #board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
-
-  /* cell - modern (aspect-ratio) + fallback (padding-top) */
-  .cell {
-    position: relative;
-    background: var(--card);
-    border: 1px solid var(--muted);
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform .12s ease, background .12s ease;
-    /* modern: */
-    aspect-ratio: 1 / 1;
-    /* fallback: create square with ::before */
-  }
-  /* Fallback: force an intrinsic square block for older engines */
-  .cell::before { content:""; display:block; padding-top:100%; } /* ensures square if aspect-ratio not supported */
-  .cell > .content {
-    position: absolute;
-    inset: 0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:10px;
-    text-align:center;
-    font-size: 14px;
-    line-height:1.1;
-    word-break:break-word;
-  }
-
-  .cell:hover{ transform: translateY(-3px); }
-  .marked .content { background: transparent; } /* visual only - winner/marked classes style below */
-
-  .marked { background: var(--accent); color:#000; font-weight:700; animation: bounce 0.25s ease; }
-  .winner { background: var(--win) !important; color:#000; font-weight:700; animation: glow 1s infinite alternate; }
+  body { font-family: Arial; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+  h1 { color: #ff4d4d; text-align: center; margin-bottom: 10px; }
+  #board { display: grid; grid-template-columns: repeat(3, 120px); grid-template-rows: repeat(3, 120px); gap: 10px; margin-top: 20px; }
+  .cell { display: flex; align-items: center; justify-content: center; padding: 10px; background: #222; border: 1px solid #444; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 14px; }
+  .cell:hover { background: #333; }
+  .marked { background: #ff4d4d; color: #000; font-weight: bold; animation: bounce 0.3s ease; }
+  .winner { background: #00ff00 !important; color: #000; font-weight: bold; animation: glow 1s infinite alternate; }
 
   @keyframes glow {
-    0% { box-shadow: 0 0 6px var(--win); }
-    50% { box-shadow: 0 0 22px var(--win); }
-    100% { box-shadow: 0 0 6px var(--win); }
+    0% { box-shadow: 0 0 5px #00ff00; }
+    50% { box-shadow: 0 0 20px #00ff00; }
+    100% { box-shadow: 0 0 5px #00ff00; }
   }
+
   @keyframes bounce {
     0% { transform: scale(1); }
-    50% { transform: scale(1.08); }
+    50% { transform: scale(1.2); }
     100% { transform: scale(1); }
   }
 
-  /* Leaderboard */
-  h2{ margin-top:18px; color:#fff; }
-  #leaderboard{ list-style:none; padding:0; margin:6px 0 60px 0; width: min(420px, 92vw); }
-  #leaderboard li{ background: #0d0d0d; padding:8px 12px; margin-bottom:6px; border-radius:6px; border:1px solid #222; }
-
-  /* responsive font tweaks */
-  @media (max-width:420px){
-    .cell > .content { font-size:13px; padding:8px; }
-  }
+  button { padding: 10px 20px; margin-top: 20px; background: #ff4d4d; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+  #usernameInput { padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #444; margin-bottom: 10px; }
 </style>
 </head>
 <body>
 <h1>F1 Qatar GP Bingo</h1>
-
-<div class="controls">
-  <input id="usernameInput" type="text" placeholder="Enter your username" />
-  <button type="button" onclick="resetMarks()">Reset Marks</button>
-</div>
-
+<input id="usernameInput" type="text" placeholder="Enter your username" />
 <p>Tap squares to mark them. 3 in a row wins!</p>
 
-<!-- Add-item control (must be in body, not in style) -->
-<div class="controls" style="margin-bottom:4px;">
-  <input id="customItemInput" type="text" placeholder="Add your own bingo item" />
-  <button type="button" onclick="addCustomItem()">Add Item</button>
-</div>
-
-<div id="boardWrapper">
-  <div id="board"></div>
-</div>
-
+<button onclick="resetMarks()">Reset Marks</button>
+<div id="board"></div>
 <h2>Leaderboard</h2>
 <ul id="leaderboard"></ul>
 
-<!-- libs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
 <script>
-/* ---------- Firebase init (unchanged) ---------- */
 const firebaseConfig = {
   apiKey: "AIzaSyA0lUuOnAq8N4sn6WpPr5evS3-sYwXfyu4",
   authDomain: "f1-bingo-7c7d4.firebaseapp.com",
@@ -124,22 +54,17 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-
-/* ---------- Leaderboard live update ---------- */
 const leaderboard = document.getElementById('leaderboard');
-db.collection('winners').orderBy('timestamp','desc').onSnapshot(snapshot => {
+
+db.collection('winners').orderBy('timestamp').onSnapshot(snapshot => {
   leaderboard.innerHTML = '';
   snapshot.forEach(doc => {
     const li = document.createElement('li');
-    // show username + readable time if exists
-    const data = doc.data() || {};
-    const ts = data.timestamp ? new Date(data.timestamp).toLocaleString() : '';
-    li.textContent = doc.id + (ts ? ` — ${ts}` : '');
+    li.textContent = doc.id;
     leaderboard.appendChild(li);
   });
 });
 
-/* ---------- Bingo items ---------- */
 const items = [
   "Safety Car","Virtual Safety Car","DRS train","Track limits violation",
   "Time penalty","Pit stop <2.5s","Pit stop >5s",
@@ -154,43 +79,22 @@ const items = [
   "3-grid penalty for something minor", "Ferrari engineers accidentally confuse strategies between drivers",
   "Radio message from engineer that sounds like a threat"
 ];
-
 let boardCells = [], boardDisabled = false;
 
-/* shuffle (Fisher–Yates would be slightly better than sort-based but this is fine) */
-function shuffle(arr){
-  // make a shallow copy and shuffle in place
-  const a = arr.slice();
-  for(let i = a.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
 
 function generateBoard(){
   const board = document.getElementById("board");
   board.innerHTML = "";
   boardCells = [];
   boardDisabled = false;
-
-  // take 9 items (shuffle first)
-  const card = shuffle(items).slice(0,9);
-
+  const card = shuffle([...items]).slice(0,9);
   card.forEach((text,index)=>{
-    const cell = document.createElement("div");
-    cell.className = "cell";
-    cell.dataset.index = index;
-
-    // inner wrapper that sits above the padding-top fallback
-    const inner = document.createElement("div");
-    inner.className = "content";
-    inner.textContent = text;
-
-    // click handler
-    cell.addEventListener('click', () => { if(!boardDisabled) toggleMark(cell); });
-
-    cell.appendChild(inner);
+    const cell=document.createElement("div");
+    cell.className="cell";
+    cell.textContent=text;
+    cell.dataset.index=index;
+    cell.onclick = ()=>{ if(!boardDisabled) toggleMark(cell); };
     board.appendChild(cell);
     boardCells.push(cell);
   });
@@ -206,11 +110,11 @@ function toggleMark(cell){
 function checkWinner(username){
   const combos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
   for(const combo of combos){
-    if(combo.every(i => boardCells[i] && boardCells[i].classList.contains('marked'))){
+    if(combo.every(i=>boardCells[i].classList.contains('marked'))){
       alert(username+" wins! 🎉");
       highlightWinning(combo);
       boardDisabled = true;
-      confetti({particleCount:120,spread:70,origin:{y:0.6}});
+      confetti({particleCount:100,spread:70,origin:{y:0.6}});
       saveResult(username);
       return;
     }
@@ -218,7 +122,7 @@ function checkWinner(username){
 }
 
 function highlightWinning(combo){
-  combo.forEach(i => boardCells[i] && boardCells[i].classList.add('winner'));
+  combo.forEach(i=>boardCells[i].classList.add('winner'));
 }
 
 function resetMarks(){
@@ -226,32 +130,17 @@ function resetMarks(){
   boardDisabled = false;
 }
 
-/* ---------- Custom item adding ---------- */
-function addCustomItem() {
-  const input = document.getElementById("customItemInput");
-  if(!input) return alert("Input not found (check HTML).");
-  const value = input.value.trim();
-  if (!value) return alert("Please type something!");
-  items.push(value);
-  input.value = "";
-  generateBoard(); // immediately regenerate so the new item may appear
-}
-
-/* ---------- Save winner to Firestore ---------- */
 function saveResult(username){
   const winnerRef = db.collection('winners').doc(username);
   winnerRef.get().then(docSnapshot=>{
     if(!docSnapshot.exists){
       winnerRef.set({ timestamp: Date.now() });
     } else {
-      alert(username + " already has a win recorded!");
+      alert(username+" already has a win recorded!");
     }
-  }).catch(err=>{
-    console.error("Error saving winner:", err);
   });
 }
 
-/* ---------- init ---------- */
 generateBoard();
 </script>
 </body>
