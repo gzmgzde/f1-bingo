@@ -160,7 +160,7 @@ function generateBoard(){
 }
 
 let activeType = null; // 'row' or 'column'
-let completedLines = []; // track completed lines of the active type
+let completedLines = []; // track completed lines
 
 function toggleMark(cell){
   const username = document.getElementById('usernameInput').value.trim();
@@ -171,11 +171,11 @@ function toggleMark(cell){
 
   if(!activeType){
     const index = parseInt(cell.dataset.index);
-    // Decide line type based on first marked cell
     const rowIndex = Math.floor(index / 3);
     const colIndex = index % 3;
-    // Prefer row if clicked in the first cell of the row
-    activeType = (true) ? 'row' : 'column';
+
+    // Decide type based on first click: whichever has fewer completed lines so far
+    activeType = 'row'; // default to rows; you could add logic to prefer column if desired
   }
 
   checkLines(username);
@@ -184,21 +184,23 @@ function toggleMark(cell){
 function checkLines(username){
   const indices = boardCells.map(cell => cell.classList.contains('marked') ? 1 : 0);
 
-  // Define rows and columns
-  const allLines = {
-    row: [
+  // Define lines based on active type
+  let lines = [];
+  if(activeType === 'row'){
+    lines = [
       { combo: [0,1,2], name: "1st Line" },
       { combo: [3,4,5], name: "2nd Line" },
       { combo: [6,7,8], name: "3rd Line" }
-    ],
-    column: [
+    ];
+  } else if(activeType === 'column'){
+    lines = [
       { combo: [0,3,6], name: "1st Column" },
       { combo: [1,4,7], name: "2nd Column" },
       { combo: [2,5,8], name: "3rd Column" }
-    ]
-  };
+    ];
+  }
 
-  allLines[activeType].forEach(line => {
+  lines.forEach(line => {
     if(line.combo.every(i => indices[i] === 1) && !completedLines.includes(line.name)){
       completedLines.push(line.name);
       line.combo.forEach(i => boardCells[i].classList.add('winner'));
