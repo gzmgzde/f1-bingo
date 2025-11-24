@@ -159,7 +159,8 @@ function generateBoard(){
   });
 }
 
-let completedLines = []; // track completed rows or columns
+let activeType = null; // 'row' or 'column'
+let completedLines = []; // track completed lines of the active type
 
 function toggleMark(cell){
   const username = document.getElementById('usernameInput').value.trim();
@@ -167,23 +168,37 @@ function toggleMark(cell){
   if(boardDisabled) return;
 
   cell.classList.toggle("marked");
+
+  if(!activeType){
+    const index = parseInt(cell.dataset.index);
+    // Decide line type based on first marked cell
+    const rowIndex = Math.floor(index / 3);
+    const colIndex = index % 3;
+    // Prefer row if clicked in the first cell of the row
+    activeType = (true) ? 'row' : 'column';
+  }
+
   checkLines(username);
 }
 
 function checkLines(username){
   const indices = boardCells.map(cell => cell.classList.contains('marked') ? 1 : 0);
 
-  // Rows and columns
-  const lines = [
-    { combo: [0,1,2], name: "1st Line" },
-    { combo: [3,4,5], name: "2nd Line" },
-    { combo: [6,7,8], name: "3rd Line" },
-    { combo: [0,3,6], name: "1st Column" },
-    { combo: [1,4,7], name: "2nd Column" },
-    { combo: [2,5,8], name: "3rd Column" }
-  ];
+  // Define rows and columns
+  const allLines = {
+    row: [
+      { combo: [0,1,2], name: "1st Line" },
+      { combo: [3,4,5], name: "2nd Line" },
+      { combo: [6,7,8], name: "3rd Line" }
+    ],
+    column: [
+      { combo: [0,3,6], name: "1st Column" },
+      { combo: [1,4,7], name: "2nd Column" },
+      { combo: [2,5,8], name: "3rd Column" }
+    ]
+  };
 
-  lines.forEach(line => {
+  allLines[activeType].forEach(line => {
     if(line.combo.every(i => indices[i] === 1) && !completedLines.includes(line.name)){
       completedLines.push(line.name);
       line.combo.forEach(i => boardCells[i].classList.add('winner'));
@@ -204,6 +219,7 @@ function resetMarks(){
   boardCells.forEach(c=>c.classList.remove('marked','winner'));
   boardDisabled = false;
   completedLines = [];
+  activeType = null;
 }
 
 
