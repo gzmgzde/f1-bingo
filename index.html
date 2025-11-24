@@ -173,9 +173,6 @@ function toggleMark(cell){
     const index = parseInt(cell.dataset.index);
     const rowIndex = Math.floor(index / 3);
     const colIndex = index % 3;
-
-    // Decide type based on first click: whichever has fewer completed lines so far
-    activeType = 'column'; // default to rows; you could add logic to prefer column if desired
   }
 
   checkLines(username);
