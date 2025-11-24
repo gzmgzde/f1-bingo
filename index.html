@@ -169,21 +169,18 @@ function toggleMark(cell){
 
   cell.classList.toggle("marked");
 
-  // First click decides game mode: row or column
+  const index = parseInt(cell.dataset.index);
+  const rowIndex = Math.floor(index / 3);
+  const colIndex = index % 3;
+
+  // Detect FIRST move type
   if(activeType === null){
-    const index = parseInt(cell.dataset.index);
-    const rowIndex = Math.floor(index / 3);
-    const colIndex = index % 3;
+    const rowFilled = [0,1,2].map(i => boardCells[rowIndex*3 + i].classList.contains("marked")).filter(v=>v).length;
+    const colFilled = [0,1,2].map(i => boardCells[i*3 + colIndex].classList.contains("marked")).filter(v=>v).length;
 
-    // Decide based on first line you can possibly complete
-    // If first mark is on the same row (0,1,2 or 3,4,5 or 6,7,8) → row mode
-    // If on the same column (0,3,6 or 1,4,7 or 2,5,8) → column mode
-    activeType = "row"; // default preference
-
-    // If clicked in the MIDDLE column (index 1,4,7) → likely column
-    if(colIndex === 1) activeType = "column";
-    // If clicked in the FIRST or LAST column (0,3,6) or (2,5,8) → also column possible
-    if(colIndex === 0 || colIndex === 2) activeType = "column";
+    if(rowFilled > colFilled) activeType = "row";
+    else if(colFilled > rowFilled) activeType = "column";
+    else activeType = "row"; // default fallback
   }
 
   checkLines(username);
@@ -225,7 +222,12 @@ function checkLines(username){
   });
 }
 
-
+function resetMarks(){
+  boardCells.forEach(c=>c.classList.remove('marked','winner'));
+  boardDisabled = false;
+  completedLines = [];
+  activeType = null;  // important!
+}
 
 
 function saveResult(username){
