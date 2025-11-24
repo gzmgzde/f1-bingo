@@ -167,17 +167,13 @@ function toggleMark(cell){
 }
 
 function checkWinner(username){
-  const combos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-  for(const combo of combos){
-    if(combo.every(i=>boardCells[i].classList.contains('marked'))){
-      alert(username+" wins! 🎉");
-      highlightWinning(combo);
-      boardDisabled = true;
-      confetti({particleCount:100,spread:70,origin:{y:0.6}});
-      saveResult(username);
-      return;
-    }
-  }
+  const allMarked = boardCells.every(cell => cell.classList.contains('marked'));
+  if(allMarked){
+    alert(username + " wins! 🎉");
+    boardCells.forEach(c => c.classList.add('winner')); // highlight all
+    boardDisabled = true;
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    saveResult(username);
 }
 
 function highlightWinning(combo){
