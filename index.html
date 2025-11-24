@@ -70,7 +70,7 @@
   <p>Tap squares to mark them. 3 in a row wins!</p>
 
   <div id="board"></div>
-  <button onclick="generateBoard()">New Card</button>
+  <button onclick="resetMarks()">Reset Marks</button>
 
   <script>
     const items = [
@@ -91,13 +91,8 @@
       return arr.sort(() => Math.random() - 0.5);
     }
 
+    // Generate the board once at page load
     function generateBoard() {
-      const username = document.getElementById('usernameInput').value.trim();
-      if (!username) {
-        alert('Please enter a username!');
-        return;
-      }
-
       const board = document.getElementById("board");
       board.innerHTML = "";
       boardCells = [];
@@ -109,13 +104,18 @@
         cell.className = "cell";
         cell.textContent = text;
         cell.dataset.index = index;
-        cell.onclick = () => toggleMark(cell, username);
+        cell.onclick = () => toggleMark(cell);
         board.appendChild(cell);
         boardCells.push(cell);
       });
     }
 
-    function toggleMark(cell, username) {
+    function toggleMark(cell) {
+      const username = document.getElementById('usernameInput').value.trim();
+      if (!username) {
+        alert('Please enter a username!');
+        return;
+      }
       cell.classList.toggle("marked");
       checkWinner(username);
     }
@@ -129,11 +129,24 @@
 
       for (const combo of winCombos) {
         if (combo.every(i => boardCells[i].classList.contains('marked'))) {
-          setTimeout(() => alert(username + ' wins! 🎉'), 100);
+          alert(username + ' wins! 🎉');
+          saveResult(username);
           return;
         }
       }
     }
+
+    function resetMarks() {
+      boardCells.forEach(cell => cell.classList.remove('marked'));
+    }
+
+    function saveResult(username) {
+      console.log('WINNER:', username);
+      // send to server if needed
+    }
+
+    // Initialize board on page load
+    generateBoard();
   </script>
 </body>
 </html>
