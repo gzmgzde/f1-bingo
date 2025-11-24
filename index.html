@@ -10,8 +10,21 @@
   #board { display: grid; grid-template-columns: repeat(3, 120px); grid-template-rows: repeat(3, 120px); gap: 10px; margin-top: 20px; }
   .cell { display: flex; align-items: center; justify-content: center; padding: 10px; background: #222; border: 1px solid #444; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 14px; }
   .cell:hover { background: #333; }
-  .marked { background: #ff4d4d; color: #000; font-weight: bold; }
-  .winner { background: #00ff00 !important; color: #000; font-weight: bold; }
+  .marked { background: #ff4d4d; color: #000; font-weight: bold; animation: bounce 0.3s ease; }
+  .winner { background: #00ff00 !important; color: #000; font-weight: bold; animation: glow 1s infinite alternate; }
+
+  @keyframes glow {
+    0% { box-shadow: 0 0 5px #00ff00; }
+    50% { box-shadow: 0 0 20px #00ff00; }
+    100% { box-shadow: 0 0 5px #00ff00; }
+  }
+
+  @keyframes bounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
   button { padding: 10px 20px; margin-top: 20px; background: #ff4d4d; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
   #usernameInput { padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #444; margin-bottom: 10px; }
 </style>
@@ -26,117 +39,107 @@
 <h2>Leaderboard</h2>
 <ul id="leaderboard"></ul>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
 <script>
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyA0lUuOnAq8N4sn6WpPr5evS3-sYwXfyu4",
-    authDomain: "f1-bingo-7c7d4.firebaseapp.com",
-    projectId: "f1-bingo-7c7d4",
-    storageBucket: "f1-bingo-7c7d4.appspot.com",
-    messagingSenderId: "167693372774",
-    appId: "1:167693372774:web:11afc0fd34166a437d8ca7"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const leaderboard = document.getElementById('leaderboard');
+const firebaseConfig = {
+  apiKey: "AIzaSyA0lUuOnAq8N4sn6WpPr5evS3-sYwXfyu4",
+  authDomain: "f1-bingo-7c7d4.firebaseapp.com",
+  projectId: "f1-bingo-7c7d4",
+  storageBucket: "f1-bingo-7c7d4.appspot.com",
+  messagingSenderId: "167693372774",
+  appId: "1:167693372774:web:11afc0fd34166a437d8ca7"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const leaderboard = document.getElementById('leaderboard');
 
-  // Listen for winners live
-  db.collection('winners').orderBy('timestamp').onSnapshot(snapshot => {
-    leaderboard.innerHTML = '';
-    snapshot.forEach(doc => {
-      const li = document.createElement('li');
-      li.textContent = doc.id;
-      leaderboard.appendChild(li);
-    });
+db.collection('winners').orderBy('timestamp').onSnapshot(snapshot => {
+  leaderboard.innerHTML = '';
+  snapshot.forEach(doc => {
+    const li = document.createElement('li');
+    li.textContent = doc.id;
+    leaderboard.appendChild(li);
   });
+});
 
-  // Bingo board
-  const items = [
-    "Safety Car","Virtual Safety Car","DRS train","Track limits violation",
-    "Time penalty","Tyre complaint","Pit stop <2.5s","Pit stop >5s",
-    "Runs wide Turn 1","Team orders","Driver retires (DNF)","Max fastest lap",
-    "Lando radio complaint","Russell/Leclerc blame","Checo penalty",
-    "Lewis coaching moment","Oscar quiet radio","Tyre blistering",
-    "Undercut attempt","Switch to hards","Fans on camera",
-    "Kids with earmuffs","Partner on camera","Team banner",
-    "Yellow flag","Lock-up","Helmet cam","Slow pit exit",
-    "Pit lane traffic","Wheel-to-wheel fight"
-  ];
+const items = [
+  "Safety Car","Virtual Safety Car","DRS train","Track limits violation",
+  "Time penalty","Tyre complaint","Pit stop <2.5s","Pit stop >5s",
+  "Runs wide Turn 1","Team orders","Driver retires (DNF)","Max fastest lap",
+  "Lando radio complaint","Russell/Leclerc blame","Checo penalty",
+  "Lewis coaching moment","Oscar quiet radio","Tyre blistering",
+  "Undercut attempt","Switch to hards","Fans on camera",
+  "Kids with earmuffs","Partner on camera","Team banner",
+  "Yellow flag","Lock-up","Helmet cam","Slow pit exit",
+  "Pit lane traffic","Wheel-to-wheel fight"
+];
 
-  let boardCells = [];
-  let boardDisabled = false;
+let boardCells = [], boardDisabled = false;
 
-  function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
 
-  function generateBoard() {
-    const board = document.getElementById("board");
-    board.innerHTML = "";
-    boardCells = [];
-    boardDisabled = false;
-    const card = shuffle([...items]).slice(0, 9);
-    card.forEach((text,index)=>{
-      const cell=document.createElement("div");
-      cell.className="cell";
-      cell.textContent=text;
-      cell.dataset.index=index;
-      cell.onclick = () => { if(!boardDisabled) toggleMark(cell); };
-      board.appendChild(cell);
-      boardCells.push(cell);
-    });
-  }
+function generateBoard(){
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  boardCells = [];
+  boardDisabled = false;
+  const card = shuffle([...items]).slice(0,9);
+  card.forEach((text,index)=>{
+    const cell=document.createElement("div");
+    cell.className="cell";
+    cell.textContent=text;
+    cell.dataset.index=index;
+    cell.onclick = ()=>{ if(!boardDisabled) toggleMark(cell); };
+    board.appendChild(cell);
+    boardCells.push(cell);
+  });
+}
 
-  function toggleMark(cell){
-    const username = document.getElementById('usernameInput').value.trim();
-    if(!username){ alert('Enter username!'); return; }
-    cell.classList.toggle("marked");
-    checkWinner(username);
-  }
+function toggleMark(cell){
+  const username = document.getElementById('usernameInput').value.trim();
+  if(!username){ alert('Enter username!'); return; }
+  cell.classList.toggle("marked");
+  checkWinner(username);
+}
 
-  function checkWinner(username){
-    const combos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-    for(const combo of combos){
-      if(combo.every(i=>boardCells[i].classList.contains('marked'))){
-        alert(username + " wins! 🎉");
-        highlightWinning(combo);
-        boardDisabled = true;
-        saveResult(username);
-        return;
-      }
+function checkWinner(username){
+  const combos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const combo of combos){
+    if(combo.every(i=>boardCells[i].classList.contains('marked'))){
+      alert(username+" wins! 🎉");
+      highlightWinning(combo);
+      boardDisabled = true;
+      confetti({particleCount:100,spread:70,origin:{y:0.6}});
+      saveResult(username);
+      return;
     }
   }
+}
 
-  function highlightWinning(combo){
-    combo.forEach(i=>boardCells[i].classList.add('winner'));
-  }
+function highlightWinning(combo){
+  combo.forEach(i=>boardCells[i].classList.add('winner'));
+}
 
-  function resetMarks(){
-    boardCells.forEach(c=>c.classList.remove('marked','winner'));
-    boardDisabled = false;
-  }
+function resetMarks(){
+  boardCells.forEach(c=>c.classList.remove('marked','winner'));
+  boardDisabled = false;
+}
 
-  function saveResult(username){
-    const winnerRef = db.collection('winners').doc(username);
-    winnerRef.get().then(docSnapshot=>{
-      if(!docSnapshot.exists){
-        winnerRef.set({ timestamp: Date.now() });
-      } else {
-        alert(username + " already has a win recorded!");
-      }
-      confetti({
-  particleCount: 100,
-  spread: 70,
-  origin: { y: 0.6 }
-});
-    });
-  }
+function saveResult(username){
+  const winnerRef = db.collection('winners').doc(username);
+  winnerRef.get().then(docSnapshot=>{
+    if(!docSnapshot.exists){
+      winnerRef.set({ timestamp: Date.now() });
+    } else {
+      alert(username+" already has a win recorded!");
+    }
+  });
+}
 
-  generateBoard();
+generateBoard();
 </script>
 </body>
 </html>
