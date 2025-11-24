@@ -21,20 +21,23 @@
     }
     #board {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
+      grid-template-columns: repeat(3, 120px);
+      grid-template-rows: repeat(3, 120px);
+      gap: 10px;
       margin-top: 20px;
-      width: 100%;
-      max-width: 500px;
     }
     .cell {
-      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
       background: #222;
       border: 1px solid #444;
       border-radius: 8px;
       text-align: center;
       cursor: pointer;
       transition: 0.2s;
+      font-size: 14px;
     }
     .cell:hover { background: #333; }
     .marked {
@@ -52,11 +55,19 @@
       cursor: pointer;
       font-weight: bold;
     }
+    #usernameInput {
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>F1 Qatar GP Bingo</h1>
-  <p>Tap squares to mark them. Refresh for a new card.</p>
+  <input id="usernameInput" type="text" placeholder="Enter your username" />
+  <p>Tap squares to mark them. 3 in a row wins!</p>
 
   <div id="board"></div>
   <button onclick="generateBoard()">New Card</button>
@@ -74,26 +85,55 @@
       "Pit lane traffic", "Wheel-to-wheel fight"
     ];
 
+    let boardCells = [];
+
     function shuffle(arr) {
       return arr.sort(() => Math.random() - 0.5);
     }
 
     function generateBoard() {
+      const username = document.getElementById('usernameInput').value.trim();
+      if (!username) {
+        alert('Please enter a username!');
+        return;
+      }
+
       const board = document.getElementById("board");
       board.innerHTML = "";
+      boardCells = [];
 
-      const card = shuffle([...items]).slice(0, 25);
+      const card = shuffle([...items]).slice(0, 9);
 
-      card.forEach(text => {
+      card.forEach((text, index) => {
         const cell = document.createElement("div");
         cell.className = "cell";
         cell.textContent = text;
-        cell.onclick = () => cell.classList.toggle("marked");
+        cell.dataset.index = index;
+        cell.onclick = () => toggleMark(cell, username);
         board.appendChild(cell);
+        boardCells.push(cell);
       });
     }
 
-    generateBoard();
+    function toggleMark(cell, username) {
+      cell.classList.toggle("marked");
+      checkWinner(username);
+    }
+
+    function checkWinner(username) {
+      const winCombos = [
+        [0,1,2], [3,4,5], [6,7,8], // rows
+        [0,3,6], [1,4,7], [2,5,8], // columns
+        [0,4,8], [2,4,6] // diagonals
+      ];
+
+      for (const combo of winCombos) {
+        if (combo.every(i => boardCells[i].classList.contains('marked'))) {
+          setTimeout(() => alert(username + ' wins! 🎉'), 100);
+          return;
+        }
+      }
+    }
   </script>
 </body>
 </html>
